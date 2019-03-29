@@ -1,0 +1,6 @@
+evernote
+psd-tools
+numpy
+scipy
+requests
+python-dotenv
