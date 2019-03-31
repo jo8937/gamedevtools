@@ -47,6 +47,7 @@ def convertToPlaneText(elem):
     return text
 
 if __name__ == '__main__':
-    txts = parseNoteXML("source/Evernote.enex")
+    txts = parseNoteXML("./source/Evernote.enex")
     for t in txts:
         print t
+ 

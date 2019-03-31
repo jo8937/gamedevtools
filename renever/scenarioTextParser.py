@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-
+import re
 from enexParser import parseNoteXML, parseNoteXMLString
 
 #dirlist = os.listdir("source")
@@ -31,35 +31,53 @@ class Paragraph(object):
         l = []
         for t in self.textlist:
             s = Statement(t)
-            if s.chara:
-                l.append( s.scgset() )
-                #print s.chara, s.cloth, s.emo
-
+            if s.resourceType == "SCG":
+                l.append( s.tokens )
+            
         c = Counter(l)
         for k, cnt in c.most_common():
-            print cnt, ",".join(k)
+            print cnt, "-".join(k)
 
-class Statement(object):
 
+class StatScg():
     chara = ""
     cloth = ""
     emo = ""
+    action = ""
+
+    def __init__(self, tpl):
+        self.chara, self.cloth, self.emo, self.action = tpl
+        
+class Statement(object):
+    
+    prefixDef = {
+        "@":"SCG",
+        u"＠":"SCG",
+        "&":"CG",
+        u"＆":"CG",
+        ":":"BG",
+        u"：":"BG",
+        "$":"BGM",
+        u"＄":"BGM",
+        "#":"EFF",
+        u"＃":"EFF"
+    }
+    resourceType = ""
     line = ""
+    tokens = ""
 
     def __init__(self, line):
         if line is None:
             return
         self.line = line
-        if line.strip().startswith(("/","#",u"／",u"＃")):
-            tpl = line[1:].split()
-            if tpl and len(tpl) > 2:
-                self.chara = tpl[0]
-                self.cloth = tpl[1]
-                self.emo = tpl[2]
-    def scgset(self):
-        return (self.chara, self.cloth, self.emo)
-
+        if line.strip().startswith(tuple([k for k in self.prefixDef])):
+            self.resourceType = self.prefixDef[line[0]]
+            #self.tokens = re.findall(r"[\w']+", line[1:]) # re.split(u"[ 　]+",line[1:])
+            self.tokens = line[1:].replace(u"　"," ").split()
+            self.tokens = tuple([ t for t in self.tokens if t.strip()])
+            
+      
 if __name__ == '__main__':
     p = Paragraph()
-    p.fromServer()
+    p.fromEnex()
     p.trace()
