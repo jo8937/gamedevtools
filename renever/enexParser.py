@@ -2,7 +2,20 @@
 
 from lxml import etree
 from StringIO import StringIO
-p = etree.XMLParser(remove_blank_text=True, resolve_entities=False)
+
+import sys
+reload(sys)  
+sys.setdefaultencoding('utf8')
+
+
+class AllEntities:
+    def __getitem__(self, key):
+        #key is your entity, you can do whatever you want with it here
+        return key    
+
+p = etree.XMLParser(remove_blank_text=True, resolve_entities=True)
+# p.parser.UseForeignDTD(True)
+# p.entity = AllEntities()
 
 def parseNoteXML(xmlFile):
     notes = parseNoteDictXML(xmlFile)

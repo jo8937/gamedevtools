@@ -2,12 +2,16 @@
 
 import os
 import re
+
 from enexParser import parseNoteXML, parseNoteXMLString
 
 #dirlist = os.listdir("source")
 from EvernoteConnector import EvernoteConnector
 from collections import Counter
 
+import sys
+reload(sys)  
+sys.setdefaultencoding('utf8')
 
 class Paragraph(object):
     def __init__(self):
@@ -21,7 +25,7 @@ class Paragraph(object):
     def fromServer(self):
         self.textlist = []
         ev = EvernoteConnector()
-        notes = ev.get_note_dict_in_notebook()
+        notes = ev.get_note_dict_in_notebook(notebook_name="1章")
         for n in notes:
             xml = n.get("content_xml")
             txt = parseNoteXMLString(xml)
@@ -79,5 +83,5 @@ class Statement(object):
       
 if __name__ == '__main__':
     p = Paragraph()
-    p.fromEnex()
+    p.fromServer()
     p.trace()

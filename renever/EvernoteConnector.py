@@ -20,6 +20,11 @@ import evernote.edam.type.ttypes as Types
 
 from evernote.api.client import EvernoteClient
 
+import sys
+reload(sys)  
+sys.setdefaultencoding('utf8')
+
+
 # Real applications authenticate with Evernote using OAuth, but for the
 # purpose of exploring the API, you can get a developer token that allows
 # you to access your own Evernote account. To get a developer token, visit
@@ -38,9 +43,9 @@ from evernote.api.client import EvernoteClient
 class EvernoteConnector():
 
     def __init__(self):
-        self.auth_token = os.getenv("EVER_TOKEN") # "your developer token"
+        self.auth_token = os.getenv("EVER_TOKEN_PRODUCTION") # "your developer token"
 
-        self.client = EvernoteClient(token=self.auth_token, sandbox=True, china=False)
+        self.client = EvernoteClient(token=self.auth_token, sandbox=False, china=False)
 
         self.user_store = self.client.get_user_store()
         version_ok = self.user_store.checkVersion(
@@ -55,14 +60,15 @@ class EvernoteConnector():
         self.note_store = self.client.get_note_store()
 
 
-    def get_note_dict_in_notebook(self, notebook_name="1차완료"):
+    def get_note_dict_in_notebook(self, notebook_name="", stack_name=""):
         notebooks = self.note_store.listNotebooks()
         print "Found ", len(notebooks), " notebooks:"
 
         notedictlist = []
         for notebook in notebooks:
-            print notebook.name
-            if notebook.name.endswith(notebook_name):
+            if (notebook.stack and stack_name and notebook.stack.endswith(stack_name)) or \
+                (notebook.name and notebook_name and notebook.name.endswith(notebook_name)):
+                print notebook.name
                 notebook = self.note_store.getNotebook(notebook.guid)
                 notelist = self.note_store.findNotesMetadata(self.auth_token, NoteFilter(notebookGuid=notebook.guid), 0, 100, NotesMetadataResultSpec(includeTitle=True))
                 for note in notelist.notes:
@@ -80,6 +86,6 @@ class EvernoteConnector():
 
 if __name__ == '__main__':
     ev = EvernoteConnector()
-    notelist = ev.get_note_dict_in_notebook()
+    notelist = ev.get_note_dict_in_notebook(stack_name="1차완료")
     for n in notelist:
         print n
