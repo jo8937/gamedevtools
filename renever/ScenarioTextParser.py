@@ -16,7 +16,13 @@ sys.setdefaultencoding('utf8')
 class Paragraph(object):
     def __init__(self):
         self.textlist = None
+        self.ev = None
         pass
+
+    def getEvernoteConnector(self):
+        if self.ev is None:
+            self.ev = EvernoteConnector(False)
+        return self.ev
 
     def fromEnex(self, filepath='source/Evernote.enex'):
         self.textlist = parseNoteXML(filepath)
@@ -24,15 +30,16 @@ class Paragraph(object):
 
     def fromServer(self):
         self.textlist = []
-        ev = EvernoteConnector()
+        ev = self.getEvernoteConnector()
         notes = ev.get_note_dict_in_notebook(notebook_name="1章")
         for n in notes:
             xml = n.get("content_xml")
             txt = parseNoteXMLString(xml)
             self.textlist.extend(txt)
 
-    def trace(self):
+    def executeStats(self):
         l = []
+        resultlist = []
         for t in self.textlist:
             s = Statement(t)
             if s.resourceType == "SCG":
@@ -40,8 +47,16 @@ class Paragraph(object):
             
         c = Counter(l)
         for k, cnt in c.most_common():
-            print cnt, "-".join(k)
+            resultline =  "-".join(k) + "\t" + str(cnt)
+            resultlist.append(resultline)
+            print resultline
 
+        return resultlist
+
+    def updateServerMetadata(self):
+        resultlist = self.executeStats()
+        ev = self.getEvernoteConnector()
+        ev.update_note(os.getenv("EVER_NOTE_TARGET_GUID"), resultlist)
 
 class StatScg():
     chara = ""
@@ -84,4 +99,4 @@ class Statement(object):
 if __name__ == '__main__':
     p = Paragraph()
     p.fromServer()
-    p.trace()
+    p.updateServerMetadata()
