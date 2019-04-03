@@ -3,7 +3,7 @@
 import os
 import re
 
-from enexParser import parseNoteXML, parseNoteXMLString
+from EnexParser import parseNoteXML, parseNoteXMLString
 
 #dirlist = os.listdir("source")
 from EvernoteConnector import EvernoteConnector
