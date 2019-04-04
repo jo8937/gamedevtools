@@ -68,19 +68,39 @@ class EvernoteConnector():
         notebooks = self.note_store.listNotebooks()
         print "Found ", len(notebooks), " notebooks:"
 
-        notedictlist = []
+        notebook_guids = []
         for notebook in notebooks:
             if (notebook.stack and stack_name and notebook.stack.endswith(stack_name)) or \
                 (notebook.name and notebook_name and notebook.name.endswith(notebook_name)):
                 print notebook.name
-                notebook = self.note_store.getNotebook(notebook.guid)
-                notelist = self.note_store.findNotesMetadata(self.auth_token, NoteFilter(notebookGuid=notebook.guid), 0, 100, NotesMetadataResultSpec(includeTitle=True))
+                # notebook = self.note_store.getNotebook(notebook.guid)
+                notebook_guids.append(notebook.guid)
+
+        return self.get_note_dict_in_filterlist([NoteFilter(notebookGuid=guid) for guid in notebook_guids])
+
+    def get_note_dict_in_tag(self, tagname):
+        tags = self.note_store.listTags(self.auth_token)
+        tag_guid = None
+        for t in tags:
+            if t.name == tagname:
+                tag_guid = t.guid
+
+        if not tag_guid:
+            raise NameError("tag not found " + tagname)
+
+        return self.get_note_dict_in_filterlist([NoteFilter(tagGuids=[tag_guid])])
+
+    def get_note_dict_in_filterlist(self, filterList):
+        notebook_guids = []
+        notedictlist = []
+        for filter in filterList:
+                notelist = self.note_store.findNotesMetadata(self.auth_token, filter, 0, 100, NotesMetadataResultSpec(includeTitle=True))
                 for note in notelist.notes:
                     note_content = self.note_store.getNoteContent(note.guid)
                     d = {
-                            "title":note.title,
-                            "content_xml":note_content
-                        }
+                        "title": note.title,
+                        "content_xml": note_content
+                    }
                     notedictlist.append(d)
 
         return notedictlist
@@ -138,4 +158,7 @@ class EvernoteConnector():
 
 if __name__ == '__main__':
     ev = EvernoteConnector(sandbox=False)
-    ev.update_note( os.getenv("EVER_NOTE_TARGET_GUID"), ["aaaa","bbbb","cccc"] )
+    #ev.update_note( os.getenv("EVER_NOTE_TARGET_GUID"), ["aaaa","bbbb","cccc"] )
+    l = ev.get_note_dict_in_tag("renpydraft")
+    for n in l:
+        print n
