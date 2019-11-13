@@ -1,5 +1,5 @@
 require 'psd'
-psdfile = File.dirname(__FILE__) + "/santa.psd"
+psdfile = File.dirname(__FILE__) + "/test.psd"
 
 #psd = PSD.new(psdfile).parse!
 
